@@ -1,6 +1,6 @@
 {
   "name": "@avkashhhh/smart-fetch",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A tiny, zero-dependency fetch wrapper with timeout, retries, exponential backoff, caching, and in-flight deduplication.",
   "keywords": [
     "fetch",
@@ -50,4 +50,3 @@
     "test": "node --test"
   }
 }
-
