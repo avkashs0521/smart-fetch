@@ -1,0 +1,52 @@
+{
+  "name": "@avkashhhh/smart-fetch",
+  "version": "1.0.0",
+  "description": "A tiny, zero-dependency fetch wrapper with timeout, retries, exponential backoff, caching, and in-flight deduplication.",
+  "keywords": [
+    "fetch",
+    "http",
+    "retry",
+    "backoff",
+    "cache",
+    "timeout",
+    "dedupe",
+    "zero-dependency",
+    "esm"
+  ],
+  "author": "Avkash Singh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/avkashs0521/smart-fetch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/avkashs0521/smart-fetch/issues"
+  },
+  "homepage": "https://github.com/avkashs0521/smart-fetch#readme",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
