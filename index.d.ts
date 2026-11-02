@@ -31,6 +31,15 @@ export interface FetcherOptions {
    * @default 100
    */
   retryDelay?: number;
+
+  /**
+   * Optional callback function invoked before each retry attempt.
+   *
+   * @param error The error that caused the retry attempt.
+   * @param attempt The 1-based index of the retry attempt.
+   * @param delayMs The backoff delay in milliseconds before the attempt runs.
+   */
+  onRetry?: (error: Error, attempt: number, delayMs: number) => void;
 }
 
 /**
@@ -85,3 +94,4 @@ export class TimeoutError extends Error {
 export function createFetcher(options?: FetcherOptions): SmartFetchClient;
 
 export default createFetcher;
+

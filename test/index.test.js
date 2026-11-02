@@ -21,6 +21,7 @@ describe('@avkashhhh/smart-fetch', () => {
       assert.throws(() => createFetcher({ cacheTTL: -50 }), /cacheTTL must be a non-negative number/);
       assert.throws(() => createFetcher({ baseURL: 123 }), /baseURL must be a string/);
       assert.throws(() => createFetcher({ retryDelay: -1 }), /retryDelay must be a non-negative number/);
+      assert.throws(() => createFetcher({ onRetry: 'not-a-fn' }), /onRetry must be a function/);
     });
 
     it('rejects invalid getJSON arguments', async () => {
@@ -162,6 +163,49 @@ describe('@avkashhhh/smart-fetch', () => {
       const data = await client.getJSON('https://api.example.com/rate-limited');
       assert.deepEqual(data, { afterRateLimit: true });
       assert.equal(attempts, 2);
+    });
+
+    it('invokes onRetry callback before each retry attempt', async () => {
+      let attempts = 0;
+      const retryLog = [];
+
+      globalThis.fetch = async () => {
+        attempts++;
+        if (attempts <= 2) {
+          return new Response(JSON.stringify({ error: 'Server unavailable' }), {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      const client = createFetcher({
+        retries: 2,
+        retryDelay: 15,
+        onRetry: (err, attempt, delay) => {
+          retryLog.push({ status: err.status, attempt, delay });
+        },
+      });
+
+      const res = await client.getJSON('https://api.example.com/retry-hook');
+      assert.deepEqual(res, { ok: true });
+      assert.equal(attempts, 3);
+      assert.equal(retryLog.length, 2);
+
+      // Attempt 1 retry (after 1st failure): attempt index 1, delay 15 * 2^0 = 15
+      assert.equal(retryLog[0].status, 503);
+      assert.equal(retryLog[0].attempt, 1);
+      assert.equal(retryLog[0].delay, 15);
+
+      // Attempt 2 retry (after 2nd failure): attempt index 2, delay 15 * 2^1 = 30
+      assert.equal(retryLog[1].status, 503);
+      assert.equal(retryLog[1].attempt, 2);
+      assert.equal(retryLog[1].delay, 30);
     });
 
     it('exhausts retries and throws HttpError with response body', async () => {

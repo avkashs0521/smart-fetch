@@ -71,6 +71,7 @@ Creates a smart fetch client instance.
 | `retries` | `number` | `0` | Maximum number of retry attempts for network errors, 429, and 5xx responses. |
 | `cacheTTL` | `number` | `0` | In-memory cache duration in milliseconds for GET requests. `0` disables caching. |
 | `retryDelay`| `number` | `100` | Base delay in milliseconds for exponential backoff (`delay * 2^attempt`). |
+| `onRetry` | `function` | `undefined` | Callback `(error, attempt, delayMs) => void` triggered prior to each retry. |
 
 #### Return Value
 
@@ -167,3 +168,4 @@ export async function fetchCityWeather(lat, lon) {
 ## License
 
 [MIT](LICENSE) © [Avkash Singh](https://github.com/avkashs0521)
+

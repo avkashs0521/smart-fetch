@@ -80,6 +80,7 @@ function resolveURL(url, baseURL = '') {
  * @property {number} [cacheTTL=0] - In-memory cache time-to-live in milliseconds (0 = disabled).
  * @property {string} [baseURL=''] - Base URL prefix for all requests.
  * @property {number} [retryDelay=100] - Initial delay in milliseconds for exponential backoff.
+ * @property {(error: Error, attempt: number, delayMs: number) => void} [onRetry] - Callback invoked before each retry attempt.
  */
 
 /**
@@ -100,6 +101,7 @@ export function createFetcher(options = {}) {
     cacheTTL = 0,
     baseURL = '',
     retryDelay = 100,
+    onRetry,
   } = options || {};
 
   if (typeof timeout !== 'number' || timeout < 0 || !Number.isFinite(timeout)) {
@@ -116,6 +118,9 @@ export function createFetcher(options = {}) {
   }
   if (typeof retryDelay !== 'number' || retryDelay < 0 || !Number.isFinite(retryDelay)) {
     throw new TypeError('retryDelay must be a non-negative number');
+  }
+  if (onRetry !== undefined && typeof onRetry !== 'function') {
+    throw new TypeError('onRetry must be a function');
   }
 
   /** @type {Map<string, { data: any, expiresAt: number }>} */
@@ -216,6 +221,13 @@ export function createFetcher(options = {}) {
             // Retry only on 429 and 5xx
             if (attempt < retries && (response.status === 429 || (response.status >= 500 && response.status <= 599))) {
               const delay = retryDelay * Math.pow(2, attempt);
+              if (typeof onRetry === 'function') {
+                try {
+                  onRetry(httpError, attempt + 1, delay);
+                } catch {
+                  // Ignore error thrown inside user callback
+                }
+              }
               await sleep(delay);
               continue;
             }
@@ -239,6 +251,13 @@ export function createFetcher(options = {}) {
           // Retry on network errors
           if (attempt < retries) {
             const delay = retryDelay * Math.pow(2, attempt);
+            if (typeof onRetry === 'function') {
+              try {
+                onRetry(err, attempt + 1, delay);
+              } catch {
+                // Ignore error thrown inside user callback
+              }
+            }
             await sleep(delay);
             continue;
           }
